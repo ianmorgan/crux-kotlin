@@ -18,7 +18,7 @@ fun main(args: Array<String>) {
 
     println(node.status())
 
-    // submit some docs
+    //  submit some docs
     val id = "bart_simpson"
     println("Submitting do with id $id")
     val doc = mapOf (cruxDbId to Keyword.intern(id),
