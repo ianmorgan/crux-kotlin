@@ -1,10 +1,12 @@
 buildscript {
 
     ext {
-
         kotlin_version = '1.2.71'
-        crux_version = '19.12-1.6.0-alpha'
+        //crux_version = '19.12-1.6.0-alpha'
+        crux_version = '19.09-1.5.0-alpha'
         junit_version = '4.12'
+        clojure_version = "1.10.0"
+        clojure_plugin_version = "0.4.0"
 
     }
 
@@ -12,15 +14,14 @@ buildscript {
         mavenLocal()
         mavenCentral()
         jcenter()
+        maven{ url 'https://repo.clojars.org/'}
         
     }
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-
-        // for Spec - http://spekframework.org/docs/latest/
+        classpath "io.github.gradle-clojure:gradle-clojure-plugin:$clojure_plugin_version"
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0'
-
     }
 }
 
@@ -32,6 +33,15 @@ plugins {
 
 apply plugin: 'kotlin'
 apply plugin: 'org.junit.platform.gradle.plugin'
+apply plugin: "gradle-clojure.clojure"
+
+clojure {
+    builds {
+        main {
+            aotAll()
+        }
+    }
+}
 
 
 group 'com.example.crux'
@@ -40,17 +50,18 @@ version '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
 repositories {
-    maven {
-        url "https://repo.clojars.org"
-    }
+
     mavenCentral()
-    //jcenter()
+    jcenter()
     //mavenLocal()
+    maven{ url 'https://repo.clojars.org/'}
+
 }
 
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    
 
 
     compile "juxt:crux-core:$crux_version"
@@ -58,9 +69,28 @@ dependencies {
 
     testCompile group: 'junit', name: 'junit', version: "$junit_version"
     //testCompile('org.junit.platform:junit-platform-runner:1.0.0')
-
-
+    
+    compile 'org.clojure:clojure:1.10.1'
 }
+
+sourceSets {
+    main.resources.srcDirs = ['resources']
+    main.kotlin.srcDirs = ['src/main/kotlin']
+    main.clojure.srcDirs = ['src/main/clojure']
+    //dev.clojure.srcDirs = ['dev']
+
+    // disable test for not - need to find out how to run tests without needing to AOT everything
+    test.clojure.srcDirs = []
+//    test.clojure.srcDirs = ['test']
+}
+
+processResources {
+    // for NON AOT mode - all CLJ files need to be included as resources (and added to the JAR) in order  for clojure to be able to dynamically load files in runtime
+    from (sourceSets.main.allSource) {
+        include("**/*.clj")
+    }
+}
+
 
 
 compileKotlin {
